@@ -1,0 +1,32 @@
+{
+  "name": "codecanvas-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.12.1",
+    "axios": "^1.6.8",
+    "body-parser": "^1.20.2",
+    "bullmq": "^5.5.3",
+    "cors": "^2.8.5",
+    "dockerode": "^4.0.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "ioredis": "^5.3.2",
+    "mysql": "^2.18.1",
+    "nodemon": "^3.1.0",
+    "pg": "^8.11.3",
+    "serve-index": "^1.9.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "prisma": "^5.12.1"
+  }
+}
