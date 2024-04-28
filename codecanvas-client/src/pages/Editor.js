@@ -143,6 +143,31 @@ const Editor = () => {
 
   // console.log("status: ", compileStatus);
 
+  const handleRunCode = async () => {
+    setRunLoading(true);
+    try {
+      const response = await fetch("http://localhost:3030/api/run-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          language: language.name,
+          input: stdInput,
+          code: code,
+        }),
+      });
+
+      const data = await response.json();
+      setStdOutput(data.output);
+      setRunLoading(false);
+      console.log("Output: ", data);
+    } catch (error) {
+      setRunLoading(false);
+      console.error("Error:", error);
+    }
+  };
+
   return (
     <>
       <Grid container spacing={2}>
@@ -230,7 +255,7 @@ const Editor = () => {
               />
             </Grid>
             <Grid item xs={6}>
-              {/* <Button
+              <Button
                 variant="contained"
                 color="primary"
                 disabled={runLoading}
@@ -241,7 +266,7 @@ const Editor = () => {
                 }
               >
                 {runLoading ? "Running..." : "Run Code"}
-              </Button> */}
+              </Button>
               <Button
                 variant="outlined"
                 color="primary"

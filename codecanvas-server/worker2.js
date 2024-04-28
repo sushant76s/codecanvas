@@ -60,7 +60,8 @@ const work = async (job) => {
   let { id, username, language, stdin, sourceCode } = job.data;
   console.log("Processing job: ", id);
   console.log("lang: ", language);
-  const code = handleInput(sourceCode, stdin);
+  //   const code = handleInput(sourceCode, stdin);
+  const code = sourceCode;
 
   console.log("code: ", code);
 
@@ -76,12 +77,14 @@ const work = async (job) => {
   console.log("ext: ", ext);
   const filePath = `${__dirname}/Code/`;
   const fileName = filePath + `code.${ext}`;
+  const inputFileName = filePath + "input.txt";
 
   if (!existsSync(filePath)) {
     mkdirSync(filePath);
   }
 
   writeFileSync(fileName, code);
+  writeFileSync(inputFileName, stdin);
 
   let output = await runCode(language.toLowerCase());
   if (output == "") {
@@ -107,6 +110,7 @@ const work = async (job) => {
     20
   );
   unlinkSync(fileName);
+  unlinkSync(inputFileName);
   const binaryPath = filePath + "code";
   if (existsSync(binaryPath)) {
     unlinkSync(binaryPath);

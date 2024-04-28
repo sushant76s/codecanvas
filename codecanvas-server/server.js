@@ -31,6 +31,9 @@ app.use("/api", addSnip);
 const getSnip = require("./routes/snip");
 app.use("/api", getSnip);
 
+const runCode = require("./routes/runCode");
+app.use("/api", runCode);
+
 // let i = 1;
 
 // const initialSetup = async () => {
