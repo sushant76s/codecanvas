@@ -4,12 +4,14 @@ const Docker = require("dockerode");
 const { exec } = require("child_process");
 const { existsSync, mkdirSync, unlinkSync, writeFileSync } = require("fs");
 const { PrismaClient } = require("@prisma/client");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const prisma = new PrismaClient();
 
 const client = new Redis({
-  host: "localhost",
-  port: 6379,
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT,
   maxRetriesPerRequest: null,
 });
 

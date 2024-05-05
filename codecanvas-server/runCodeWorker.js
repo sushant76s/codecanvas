@@ -2,12 +2,14 @@ const { Worker, Queue } = require("bullmq");
 const Redis = require("ioredis");
 const Docker = require("dockerode");
 const { writeFileSync, unlinkSync, existsSync, mkdirSync } = require("fs");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const docker = new Docker();
 
 const client = new Redis({
-  host: "localhost",
-  port: 6379,
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT,
   maxRetriesPerRequest: null,
 });
 

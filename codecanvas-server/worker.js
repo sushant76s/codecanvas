@@ -2,14 +2,24 @@ const { Worker } = require("bullmq");
 const Redis = require("ioredis");
 const Docker = require("dockerode");
 const { exec } = require("child_process");
-const { existsSync, mkdirSync, unlinkSync, writeFileSync } = require("fs");
+const {
+  existsSync,
+  mkdirSync,
+  unlinkSync,
+  writeFileSync,
+  readFileSync,
+} = require("fs");
+const { promisify } = require("util");
+const rimraf = promisify(require("rimraf"));
 const { PrismaClient } = require("@prisma/client");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const prisma = new PrismaClient();
 
 const client = new Redis({
-  host: "localhost",
-  port: 6379,
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT,
   maxRetriesPerRequest: null,
 });
 
@@ -21,7 +31,6 @@ const runCode = async (language) => {
   }
 
   try {
-    let returnChunks = "";
     const container = await docker.createContainer({
       Image: `${language}-runner`,
       AttachStdout: true,
@@ -31,26 +40,33 @@ const runCode = async (language) => {
         Binds: [`${__dirname}/Code:/judge`],
       },
     });
+
     await container.start();
-    const logs = await container.logs({
-      follow: true,
-      stderr: true,
-      stdout: true,
-    });
-    logs.on("data", (chunk) => {
-      returnChunks += chunk.toString();
-    });
-    logs.on("error", (err) => {
-      console.error("error reading logs: ", err);
-    });
     await container.wait();
-    const timeout = setTimeout(async () => {
-      await container.remove();
-      returnChunks = "Timeout";
-    }, 3000);
-    clearTimeout(timeout);
+    await container.stop().catch((error) => {
+      if (error.statusCode === 304) {
+        console.log("Container is already stopped.");
+      } else {
+        throw error;
+      }
+    });
     await container.remove();
-    return returnChunks;
+
+    const filePath = `${__dirname}/Code/`;
+    const outputFileName = filePath + "output.txt";
+    const errorFileName = filePath + "error.txt";
+
+    let output = "";
+    if (existsSync(outputFileName)) {
+      const outputRes = readFileSync(outputFileName, "utf-8");
+      output += outputRes;
+    }
+
+    if (existsSync(errorFileName)) {
+      const errorRes = readFileSync(errorFileName, "utf-8");
+      output += errorRes;
+    }
+    return output;
   } catch (error) {
     console.error("error running container: ", error);
   }
@@ -58,60 +74,62 @@ const runCode = async (language) => {
 
 const work = async (job) => {
   let { id, username, language, stdin, sourceCode } = job.data;
-  console.log("Processing job: ", id);
-  console.log("lang: ", language);
-  const code = handleInput(sourceCode, stdin);
+  try {
+    const langExt = {
+      javascript: "js",
+      python: "py",
+      java: "java",
+      "c++": "cpp",
+      c: "c",
+    };
 
-  console.log("code: ", code);
+    const ext = langExt[language.toLowerCase()];
+    const filePath = `${__dirname}/Code/`;
+    const fileName = filePath + `code.${ext}`;
+    const inputFileName = filePath + "input.txt";
 
-  const langExt = {
-    javascript: "js",
-    python: "py",
-    java: "java",
-    "c++": "cpp",
-    c: "c",
-  };
+    if (!existsSync(filePath)) {
+      mkdirSync(filePath);
+    }
 
-  const ext = langExt[language.toLowerCase()];
-  console.log("ext: ", ext);
-  const filePath = `${__dirname}/Code/`;
-  const fileName = filePath + `code.${ext}`;
+    writeFileSync(fileName, sourceCode);
+    writeFileSync(inputFileName, stdin);
 
-  if (!existsSync(filePath)) {
-    mkdirSync(filePath);
+    let output = await runCode(language.toLowerCase());
+
+    if (output == "") {
+      output = "No output available to print";
+    }
+
+    unlinkSync(fileName);
+    unlinkSync(inputFileName);
+    const binaryPath = filePath + "code";
+    if (existsSync(binaryPath)) {
+      unlinkSync(binaryPath);
+    }
+
+    await rimraf(filePath);
+
+    const newSnippet = await prisma.snips.update({
+      data: {
+        stdout: output,
+      },
+      where: {
+        id: id,
+      },
+    });
+
+    await client.set(
+      `snip:${newSnippet.id}`,
+      JSON.stringify(newSnippet),
+      "EX",
+      20
+    );
+
+    console.log("finished Job: ", id);
+  } catch (error) {
+    console.log("Something went wrong: ", id);
   }
-
-  writeFileSync(fileName, code);
-
-  let output = await runCode(language.toLowerCase());
-  if (output == "") {
-    output = "No output available to print";
-  }
-
-  console.log("Output: ", output);
-  output = output.replace(/[\x00-\x1F\x7F]/g, "");
-
-  const newSnippet = await prisma.snips.update({
-    data: {
-      stdout: output,
-    },
-    where: {
-      id: id,
-    },
-  });
-
-  await client.set(
-    `snip:${newSnippet.id}`,
-    JSON.stringify(newSnippet),
-    "EX",
-    20
-  );
-  unlinkSync(fileName);
-  const binaryPath = filePath + "code";
-  if (existsSync(binaryPath)) {
-    unlinkSync(binaryPath);
-  }
-  console.log("finished Job: ", id);
 };
 
 const worker = new Worker("snipQueue", work, {
@@ -136,21 +154,21 @@ const initialSetup = async () => {
   console.log("image built.");
 };
 
-const handleInput = (source, input) => {
-  const placeholders = source.match(/\$(\w+)/g);
-  const inputData = input.split(",");
+// const handleInput = (source, input) => {
+//   const placeholders = source.match(/\$(\w+)/g);
+//   const inputData = input.split(",");
 
-  if (placeholders) {
-    if (inputData.length !== placeholders.length) {
-      console.log("invalid number of codes");
-    }
-    let idx = 0;
-    placeholders.forEach((placeholder) => {
-      source = source.replace(placeholder, inputData[idx]);
-      idx++;
-    });
-  }
-  return source;
-};
+//   if (placeholders) {
+//     if (inputData.length !== placeholders.length) {
+//       console.log("invalid number of codes");
+//     }
+//     let idx = 0;
+//     placeholders.forEach((placeholder) => {
+//       source = source.replace(placeholder, inputData[idx]);
+//       idx++;
+//     });
+//   }
+//   return source;
+// };
 
 initialSetup();

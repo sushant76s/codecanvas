@@ -1,10 +1,12 @@
 const Redis = require("ioredis");
 const { Queue } = require("bullmq");
 const prisma = require("../config/prismadb");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const client = new Redis({
-  host: "localhost",
-  port: 6379,
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT,
   maxRetriesPerRequest: null,
 });
 
