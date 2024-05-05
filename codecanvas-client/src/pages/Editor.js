@@ -10,19 +10,32 @@ import {
   Chip,
   Box,
 } from "@mui/material";
-import CodeMirror from "@uiw/react-codemirror";
+import CodeMirror, { lineNumbers } from "@uiw/react-codemirror";
+import {
+  langNames,
+  langs,
+  loadLanguage,
+} from "@uiw/codemirror-extensions-langs";
+
 import { vscodeDark } from "@uiw/codemirror-theme-vscode";
+import { sublime } from "@uiw/codemirror-theme-sublime";
+
 import { submitData } from "../redux/actions/entriesActions";
 import { getSubmission, submitCode } from "../services/JudgeApi";
 import { languages } from "../assets/data/languages";
 import { serverCheck } from "../services/HealthCheck";
 import ServerError from "../components/error/ServerError";
+import MonacoEditor from "../components/monaco-editor/MonacoEditor";
 
 const Editor = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [username, setUsername] = useState("");
-  const [language, setLanguage] = useState(null);
+  const [language, setLanguage] = useState({
+    id: 1,
+    name: "C++",
+    name2: "cpp",
+  });
   const [code, setCode] = useState("");
   const [stdInput, setStdInput] = useState("");
   const [stdOutput, setStdOutput] = useState("");
@@ -48,6 +61,10 @@ const Editor = () => {
 
     checkServerStatus();
   }, []);
+
+  // useEffect(() => {
+  //   loadLanguage([javascript]);
+  // });
 
   if (serverStatus === false) {
     return <ServerError status={serverStatus} />;
@@ -138,6 +155,7 @@ const Editor = () => {
     setLanguage({
       id: e.target.value,
       name: selectedLanguage ? selectedLanguage.name : "",
+      name2: selectedLanguage ? selectedLanguage.name2 : "cpp",
     });
   };
 
@@ -168,6 +186,8 @@ const Editor = () => {
     }
   };
 
+  console.log("l: ", language?.name2);
+
   return (
     <>
       <Grid container spacing={2}>
@@ -190,6 +210,7 @@ const Editor = () => {
                 value={language?.id || ""}
                 onChange={(e) => handleSetLanguage(e)}
                 sx={{ width: "100%" }}
+                // defaultValue="C++"
               >
                 {languages.map((option) => (
                   <MenuItem key={option.id} value={option.id}>
@@ -203,8 +224,10 @@ const Editor = () => {
                 value={code}
                 height="400px"
                 onChange={setCode}
-                theme={vscodeDark}
+                theme={sublime}
+                extensions={[loadLanguage(language?.name2 || "cpp")]}
               />
+              {/* <MonacoEditor /> */}
             </Grid>
           </Grid>
         </Grid>
@@ -267,14 +290,6 @@ const Editor = () => {
               >
                 {runLoading ? "Running..." : "Run Code"}
               </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={redirectToAllSubmissions}
-                fullWidth
-              >
-                All submissions
-              </Button>
             </Grid>
             <Grid item xs={6}>
               <Button
@@ -292,7 +307,7 @@ const Editor = () => {
                 {submitLoading ? "Submitting..." : "Submit Code"}
               </Button>
             </Grid>
-            {/* <Grid item xs={12}>
+            <Grid item xs={12}>
               <Button
                 variant="outlined"
                 color="primary"
@@ -301,7 +316,7 @@ const Editor = () => {
               >
                 All submissions
               </Button>
-            </Grid> */}
+            </Grid>
           </Grid>
         </Grid>
       </Grid>

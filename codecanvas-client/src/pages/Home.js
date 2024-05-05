@@ -1,45 +1,24 @@
 import React, { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
 import {
   Container,
   Grid,
-  Paper,
-  Switch,
-  ThemeProvider,
-  createTheme,
   Card,
   CardActions,
   CardContent,
   Button,
   CardHeader,
   CardMedia,
+  Divider,
+  Typography,
 } from "@mui/material";
-import NavBar from "../components/nav-bar/NavBar";
-import img1 from "../assets/images/img1.png";
-import Footer from "../components/footer/Footer";
+import code from "../assets/images/code.png";
+import ApplicationBar from "../components/application-bar/ApplicationBar";
 
 const Home = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [darkMode, setDarkMode] = useState(false);
   const currentLocation = location.pathname;
-
-  // Function to toggle between light and dark theme
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
-  // Define the theme
-  const theme = createTheme({
-    palette: {
-      mode: darkMode ? "dark" : "light",
-    },
-  });
 
   const openEditor = () => {
     navigate("/editor");
@@ -50,9 +29,9 @@ const Home = () => {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <NavBar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-      <Container sx={{ py: 2 }}>
+    <>
+      <ApplicationBar />
+      <Container sx={{ py: 4, px: 0 }}>
         {currentLocation === "/" && (
           <Grid container spacing={2}>
             <Grid item xs={12} md={8}>
@@ -66,11 +45,13 @@ const Home = () => {
                         write, run, and experiment with code in various
                         programming languages, all within your browser.
                       </Typography>
+                      <Divider />
                       <CardMedia
                         component="img"
-                        height="300"
-                        image={img1}
+                        height="385"
+                        image={code}
                         alt="Code Playground"
+                        sx={{ p: 2 }}
                       />
                     </CardContent>
                     {/* <CardActions>
@@ -86,14 +67,20 @@ const Home = () => {
                   <Card sx={{ minWidth: 275 }}>
                     <CardHeader title="EDITOR" />
                     <CardContent>
-                      <CardMedia
+                      {/* <CardMedia
                         component="img"
                         height="100"
                         image={img1}
                         alt="Paella dish"
-                      />
+                      /> */}
+                      <Typography>
+                        Within the 'Editor' page, you can write, edit, and
+                        experiment with code in various programming languages.
+                        This page provides tools for coding and debugging,
+                        enabling you to create and modify code effortlessly.
+                      </Typography>
                     </CardContent>
-                    <CardActions>
+                    <CardActions sx={{ justifyContent: "right" }}>
                       <Button
                         variant="outlined"
                         onClick={openEditor}
@@ -108,14 +95,19 @@ const Home = () => {
                   <Card sx={{ minWidth: 275 }}>
                     <CardHeader title="SUBMISSIONS" />
                     <CardContent>
-                      <CardMedia
+                      {/* <CardMedia
                         component="img"
                         height="100"
                         image={img1}
                         alt="Paella dish"
-                      />
+                      /> */}
+                      <Typography>
+                        The 'Submissions' page is where you can find all code
+                        submissions by various users. You can view and copy the
+                        code from this page.
+                      </Typography>
                     </CardContent>
-                    <CardActions>
+                    <CardActions sx={{ justifyContent: "right" }}>
                       <Button
                         variant="outlined"
                         onClick={openSubmissions}
@@ -132,8 +124,7 @@ const Home = () => {
         )}
         <Outlet />
       </Container>
-      <Footer />
-    </ThemeProvider>
+    </>
   );
 };
 

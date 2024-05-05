@@ -2,22 +2,27 @@ export const languages = [
   {
     id: 1,
     name: "C++",
+    name2: "cpp",
   },
   {
     id: 2,
     name: "Python",
+    name2: "python",
   },
   {
     id: 3,
     name: "Java",
+    name2: "java",
   },
   {
     id: 4,
     name: "JavaScript",
+    name2: "javascript",
   },
   {
     id: 5,
     name: "C",
+    name2: "cpp",
   },
 ];
 
