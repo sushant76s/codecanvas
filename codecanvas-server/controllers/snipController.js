@@ -44,10 +44,6 @@ exports.addCodeSnip = async (req, res) => {
     console.error(error);
     return res.status(500).json({ message: "Something went wrong" });
   }
-  //   console.log("username: ", username);
-  //   console.log("language: ", language);
-  //   console.log("input: ", input);
-  //   console.log("code: ", code);
 };
 
 exports.getCodeSnips = async (req, res) => {

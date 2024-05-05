@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
-const { exec } = require("child_process");
 
 dotenv.config();
 
@@ -33,25 +32,6 @@ app.use("/api", getSnip);
 
 const runCode = require("./routes/runCode");
 app.use("/api", runCode);
-
-// let i = 1;
-
-// const initialSetup = async () => {
-//   const image = "python";
-//   exec(
-//     `docker build -t ${image}-runner Docker/${image}`,
-//     (err, stdout, stderr) => {
-//       if (err) {
-//         console.log(`exec error: ${err}`);
-//       }
-//     }
-//   );
-//   console.log("image built.");
-// };
-// if (i == 1) {
-//   initialSetup();
-//   i++;
-// }
 
 app.listen(port, () =>
   console.log(`server is running on: http://localhost:${port}`)

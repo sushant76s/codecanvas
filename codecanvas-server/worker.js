@@ -1,6 +1,6 @@
 const { Worker } = require("bullmq");
-const Redis = require("ioredis");
 const Docker = require("dockerode");
+const Redis = require("ioredis");
 const { exec } = require("child_process");
 const {
   existsSync,
@@ -16,14 +16,13 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const prisma = new PrismaClient();
+const docker = new Docker();
 
 const client = new Redis({
   host: process.env.REDIS_HOST,
   port: process.env.REDIS_PORT,
   maxRetriesPerRequest: null,
 });
-
-const docker = new Docker();
 
 const runCode = async (language) => {
   if (language === "c" || language === "c++") {
@@ -151,24 +150,7 @@ const initialSetup = async () => {
       }
     );
   });
-  console.log("image built.");
+  console.log("Docker images built successfully.");
 };
-
-// const handleInput = (source, input) => {
-//   const placeholders = source.match(/\$(\w+)/g);
-//   const inputData = input.split(",");
-
-//   if (placeholders) {
-//     if (inputData.length !== placeholders.length) {
-//       console.log("invalid number of codes");
-//     }
-//     let idx = 0;
-//     placeholders.forEach((placeholder) => {
-//       source = source.replace(placeholder, inputData[idx]);
-//       idx++;
-//     });
-//   }
-//   return source;
-// };
 
 initialSetup();
