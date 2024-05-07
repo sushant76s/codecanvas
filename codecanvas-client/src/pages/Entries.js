@@ -188,13 +188,13 @@ const Entries = () => {
 
   // const isNotFound = rows && rows.length === 0;
 
-  // const isNotFound = allSnippets && allSnippets.length === 0;
-  const [empty, setEmpty] = useState(true);
+  const isNotFound = allSnippets && allSnippets.length === 0;
+  const [empty, setEmpty] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (allSnippets.length === 0) {
-        setEmpty(false);
+        setEmpty(true);
       }
     }, 3000);
 
@@ -302,7 +302,7 @@ const Entries = () => {
                     );
                   })}
             </TableBody>
-            <EmptyTableContent isEmpty={empty} />
+            {empty && <EmptyTableContent isEmpty={isNotFound} />}
           </Table>
         </TableContainer>
         <TablePagination
