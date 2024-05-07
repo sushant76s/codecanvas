@@ -17,7 +17,7 @@ const snipQueue = new Queue("snipQueue", {
 exports.addCodeSnip = async (req, res) => {
   const { username, language, input, code } = req.body;
 
-  if (!username || !language || !input || !code) {
+  if (!username || !language || !code) {
     return res.json({ message: "Please provide all details" });
   }
 

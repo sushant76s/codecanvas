@@ -12,6 +12,10 @@ const port = process.env.PORT || 3030;
 app.use(cors());
 app.use(bodyParser.json());
 
+app.get("/", (req, res) => {
+  res.send("Server is running :)");
+});
+
 // manage to ensure server is running or not from frontend
 const healthCheck = require("./routes/healthCheck");
 app.use("/api", healthCheck);

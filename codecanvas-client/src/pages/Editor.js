@@ -27,7 +27,7 @@ import { serverCheck } from "../services/HealthCheck";
 import ServerError from "../components/error/ServerError";
 import MonacoEditor from "../components/monaco-editor/MonacoEditor";
 
-import { SERVER_URL } from "../config";
+import { SERVER_ENDPOINT } from "../config-global";
 
 const Editor = () => {
   const navigate = useNavigate();
@@ -167,7 +167,7 @@ const Editor = () => {
     setRunLoading(true);
     setStdOutput("");
     try {
-      const response = await fetch(`${SERVER_URL}/run-code`, {
+      const response = await fetch(`${SERVER_ENDPOINT}/run-code`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -182,7 +182,7 @@ const Editor = () => {
       const data = await response.json();
       setStdOutput(data.output);
       setRunLoading(false);
-      console.log("Output: ", data);
+      // console.log("Output: ", data);
     } catch (error) {
       setRunLoading(false);
       console.error("Error:", error);

@@ -31,7 +31,7 @@ export const getData = async () => {
 // };
 
 export const postData = async (formData) => {
-  console.log("form data: ", formData);
+  // console.log("form data: ", formData);
   try {
     const response = await Interceptor.post("/add-snip", formData);
     return response;
