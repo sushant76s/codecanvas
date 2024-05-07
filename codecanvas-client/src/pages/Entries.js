@@ -23,6 +23,8 @@ import EmptyTableContent from "../components/empty-content/EmptyTableContent";
 import { serverCheck } from "../services/HealthCheck";
 import ServerError from "../components/error/ServerError";
 
+import { SERVER_URL } from "../config";
+
 const columns = [
   { id: "username", label: "USER", minWidth: 170 },
   {
@@ -97,7 +99,7 @@ const Entries = () => {
 
   const fetchSnippets = async () => {
     try {
-      const res = await fetch("http://localhost:3030/api/get-snips", {
+      const res = await fetch(`${SERVER_URL}/get-snips`, {
         cache: "no-store",
       });
       if (!res.ok) {

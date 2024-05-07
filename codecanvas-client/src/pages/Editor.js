@@ -27,6 +27,8 @@ import { serverCheck } from "../services/HealthCheck";
 import ServerError from "../components/error/ServerError";
 import MonacoEditor from "../components/monaco-editor/MonacoEditor";
 
+import { SERVER_URL } from "../config";
+
 const Editor = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -163,8 +165,9 @@ const Editor = () => {
 
   const handleRunCode = async () => {
     setRunLoading(true);
+    setStdOutput("");
     try {
-      const response = await fetch("http://localhost:3030/api/run-code", {
+      const response = await fetch(`${SERVER_URL}/run-code`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -186,7 +189,7 @@ const Editor = () => {
     }
   };
 
-  console.log("l: ", language?.name2);
+  // console.log("l: ", language?.name2);
 
   return (
     <>

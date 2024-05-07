@@ -16,6 +16,11 @@ const docker = new Docker();
 exports.runCode = async (req, res) => {
   const { language, input, code } = req.body;
 
+  if (existsSync(`${__dirname}/RunCode`)) {
+    console.log("Yes exists dir.");
+    await rimraf(`${__dirname}/RunCode`);
+  }
+
   try {
     const langExt = {
       javascript: "js",

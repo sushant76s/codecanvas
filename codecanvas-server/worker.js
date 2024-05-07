@@ -73,6 +73,9 @@ const runCode = async (language) => {
 
 const work = async (job) => {
   let { id, username, language, stdin, sourceCode } = job.data;
+  if (existsSync(`${__dirname}/Code`)) {
+    await rimraf(`${__dirname}/Code`);
+  }
   try {
     const langExt = {
       javascript: "js",
