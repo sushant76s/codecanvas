@@ -135,11 +135,16 @@ const Editor = () => {
       code: code,
     };
     try {
-      dispatch(submitData(data));
-      setTimeout(() => {
+      if (data.username !== "" && data.code !== "") {
+        dispatch(submitData(data));
+        setTimeout(() => {
+          setSubmitLoading(false);
+          navigate("/entries");
+        }, 1000);
+      } else {
+        alert("username or code is empty!");
         setSubmitLoading(false);
-        navigate("/entries");
-      }, 1000);
+      }
     } catch (error) {
       setSubmitLoading(false);
       console.log("Error: ", error);

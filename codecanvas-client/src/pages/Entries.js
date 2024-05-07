@@ -196,7 +196,7 @@ const Entries = () => {
       if (allSnippets.length === 0) {
         setEmpty(true);
       }
-    }, 3000);
+    }, 10 * 1000);
 
     return () => {
       clearTimeout(timer);
