@@ -1,28 +1,27 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Typography } from "@mui/material";
+import { Typography, Grid } from "@mui/material";
 
 const EmptyTableContent = ({ isEmpty }) => {
   return (
     <>
       {isEmpty ? (
-        <Typography
-          component="div"
+        <Grid
+          container
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
           sx={{
             mt: 2,
             mb: 2,
-            alignItems: "center",
             fontWeight: "bold",
-            display: "flex",
-            justifyContent: 'center'
           }}
         >
-          Table is Empty!
-        </Typography>
+          <Typography variant="body1">Table is Empty!</Typography>
+        </Grid>
       ) : null}
     </>
   );
-
 };
 
 EmptyTableContent.propTypes = {

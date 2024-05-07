@@ -17,11 +17,14 @@ import {
   Grid,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+
 import CodeDialog from "../components/code-dialog/CodeDialog";
 import { getSubmittedData } from "../redux/actions/entriesActions";
 import EmptyTableContent from "../components/empty-content/EmptyTableContent";
 import { serverCheck } from "../services/HealthCheck";
 import ServerError from "../components/error/ServerError";
+import Circular from "../components/progress/Circular";
+import Linear from "../components/progress/Linear";
 
 import { SERVER_ENDPOINT } from "../config-global";
 
@@ -185,7 +188,20 @@ const Entries = () => {
 
   // const isNotFound = rows && rows.length === 0;
 
-  const isNotFound = allSnippets && allSnippets.length === 0;
+  // const isNotFound = allSnippets && allSnippets.length === 0;
+  const [empty, setEmpty] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (allSnippets.length === 0) {
+        setEmpty(true);
+      }
+    }, 3000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     const checkServerStatus = async () => {
@@ -236,6 +252,7 @@ const Entries = () => {
         </Grid>
       </Grid>
       <Divider sx={{ mt: 2, mb: 2 }} />
+      {allSnippets.length === 0 ? <Linear /> : null}
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
         <TableContainer sx={{ maxHeight: 400 }}>
           <Table stickyHeader aria-label="sticky table">
@@ -285,7 +302,7 @@ const Entries = () => {
                     );
                   })}
             </TableBody>
-            <EmptyTableContent isEmpty={isNotFound} />
+            <EmptyTableContent isEmpty={empty} />
           </Table>
         </TableContainer>
         <TablePagination
