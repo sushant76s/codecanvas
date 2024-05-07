@@ -189,12 +189,12 @@ const Entries = () => {
   // const isNotFound = rows && rows.length === 0;
 
   // const isNotFound = allSnippets && allSnippets.length === 0;
-  const [empty, setEmpty] = useState(false);
+  const [empty, setEmpty] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (allSnippets.length === 0) {
-        setEmpty(true);
+        setEmpty(false);
       }
     }, 3000);
 
