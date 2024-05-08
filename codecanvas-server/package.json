@@ -24,7 +24,8 @@
     "nodemon": "^3.1.0",
     "pg": "^8.11.3",
     "serve-index": "^1.9.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "prisma": "^5.12.1"

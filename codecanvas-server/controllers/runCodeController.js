@@ -10,16 +10,17 @@ const {
 const { promisify } = require("util");
 const exec = promisify(require("child_process").exec);
 const rimraf = promisify(require("rimraf"));
+const { v4: uuidv4 } = require("uuid");
 
 const docker = new Docker();
 
 exports.runCode = async (req, res) => {
   const { language, input, code } = req.body;
 
-  if (existsSync(`${__dirname}/RunCode`)) {
-    console.log("Yes exists dir.");
-    await rimraf(`${__dirname}/RunCode`);
-  }
+  // if (existsSync(`${__dirname}/RunCode`)) {
+  //   console.log("Yes exists dir.");
+  //   await rimraf(`${__dirname}/RunCode`);
+  // }
 
   try {
     const langExt = {
@@ -30,20 +31,21 @@ exports.runCode = async (req, res) => {
       c: "c",
     };
 
+    const requestId = generateUniqueId();
     const ext = langExt[language.toLowerCase()];
-    const filePath = `${__dirname}/RunCode/`;
+    const filePath = `${__dirname}/RunCode/${requestId}/`;
     const fileName = filePath + `code.${ext}`;
     const inputFileName = filePath + "input.txt";
 
     if (!existsSync(filePath)) {
-      mkdirSync(filePath);
+      mkdirSync(filePath, { recursive: true });
     }
 
     writeFileSync(fileName, code);
     writeFileSync(inputFileName, input);
 
     // let output = await executeCode(language.toLowerCase());
-    let output = await processCode(language.toLowerCase());
+    let output = await processCode(language.toLowerCase(), filePath);
 
     if (output == "") {
       output = "No output available to print";
@@ -51,10 +53,11 @@ exports.runCode = async (req, res) => {
 
     unlinkSync(fileName);
     unlinkSync(inputFileName);
-    const binaryPath = filePath + "code";
-    if (existsSync(binaryPath)) {
-      unlinkSync(binaryPath);
-    }
+
+    // const binaryPath = filePath + "code";
+    // if (existsSync(binaryPath)) {
+    //   unlinkSync(binaryPath);
+    // }
 
     // rmdirSync(filePath, { recursive: true }); //deprecated
     await rimraf(filePath);
@@ -117,7 +120,7 @@ const executeCode = async (language) => {
   }
 };
 
-const processCode = async (language) => {
+const processCode = async (language, filePath) => {
   if (language === "c" || language === "c++") {
     language = "cpp";
   }
@@ -129,8 +132,9 @@ const processCode = async (language) => {
       AttachStderr: true,
 
       HostConfig: {
-        Binds: [`${__dirname}/RunCode:/judge`],
+        Binds: [`${filePath}:/judge`],
       },
+      name: `code-runner-${generateUniqueId()}`,
     });
 
     await container.start();
@@ -144,7 +148,7 @@ const processCode = async (language) => {
     });
     await container.remove();
 
-    const filePath = `${__dirname}/RunCode/`;
+    // const filePath = `${__dirname}/RunCode/`;
     const outputFileName = filePath + "output.txt";
     const errorFileName = filePath + "error.txt";
 
@@ -163,3 +167,7 @@ const processCode = async (language) => {
     console.error("error running container: ", error);
   }
 };
+
+function generateUniqueId() {
+  return uuidv4();
+}
