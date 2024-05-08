@@ -33,7 +33,8 @@ export default function CodeDialog({ status, handleDialog, data }) {
     navigator.clipboard
       .writeText(data.sourceCode)
       .then(() => {
-        console.log("Code copied!");
+        // console.log("Code copied!");
+        alert("Code copied!");
       })
       .catch((err) => {
         console.error("Failed to copy value: ", err);

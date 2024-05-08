@@ -20,10 +20,9 @@ import {
 import { vscodeDark } from "@uiw/codemirror-theme-vscode";
 import { sublime } from "@uiw/codemirror-theme-sublime";
 
-import { submitData } from "../redux/actions/entriesActions";
-import { getSubmission, submitCode } from "../services/JudgeApi";
+import { submitEntry } from "../redux/actions/entriesActions";
 import { languages } from "../assets/data/languages";
-import { serverCheck } from "../services/HealthCheck";
+import { serverStatus } from "../redux/actions/serverStatusActions";
 import ServerError from "../components/error/ServerError";
 import MonacoEditor from "../components/monaco-editor/MonacoEditor";
 
@@ -46,88 +45,18 @@ const Editor = () => {
   const [runLoading, setRunLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
 
-  const [compileStatus, setCompileStatus] = useState("");
-
-  const [serverStatus, setServerStatus] = useState(true);
   useEffect(() => {
-    const checkServerStatus = async () => {
-      try {
-        const response = await serverCheck();
-        if (!response.data.status) {
-          setServerStatus(false);
-        }
-      } catch (error) {
-        setServerStatus(false);
-      }
-    };
+    dispatch(serverStatus());
+  }, [dispatch]);
 
-    checkServerStatus();
-  }, []);
+  const serverState = useSelector((state) => state.ServerStatusReducer.status);
 
-  // useEffect(() => {
-  //   loadLanguage([javascript]);
-  // });
-
-  if (serverStatus === false) {
-    return <ServerError status={serverStatus} />;
+  if (!serverState && !serverState) {
+    return <ServerError status={serverState && serverState} />;
   }
-
-  // const handleRunCode = async () => {
-  //   try {
-  //     setRunLoading(true);
-  //     setCompileStatus("");
-  //     const codeData = {
-  //       language_id: language?.id || null,
-  //       source_code: code,
-  //       stdin: stdInput,
-  //     };
-  //     const submitResponse = await submitCode(codeData);
-  //     let submissionResponse;
-  //     let state = "";
-
-  //     if (submitResponse.status === 200) {
-  //       const token = submitResponse.data.token;
-  //       do {
-  //         submissionResponse = await getSubmission(token);
-  //         // console.log("Submission Response: ", submissionResponse);
-  //         if (submissionResponse && submissionResponse?.status === 200) {
-  //           setCompileStatus(submissionResponse.data.status.description);
-  //           if (submissionResponse.data.status.description === "Accepted") {
-  //             setStdOutput(submissionResponse.data.stdout);
-  //             setRunLoading(false);
-  //             break;
-  //           }
-  //           state = submissionResponse.data.status.description;
-  //         } else {
-  //           setStdOutput("Execution failed try again.");
-  //           setCompileStatus("Failed, try again.");
-  //           break;
-  //         }
-  //         await new Promise((resolve) => setTimeout(resolve, 2000));
-  //       } while (state === "Processing");
-  //     } else {
-  //       console.log("Error while submitting code.");
-  //     }
-  //     setRunLoading(false);
-  //     if (submissionResponse?.data?.status.description !== "Accepted") {
-  //       setCompileStatus(submissionResponse?.data?.status.description);
-  //       setStdOutput(submissionResponse?.data?.stderr);
-  //     }
-  //   } catch (error) {
-  //     console.log("Error running code: ", error);
-  //   }
-  // };
 
   const handleSubmitCode = () => {
     setSubmitLoading(true);
-    // const data = {
-    //   username: username,
-    //   code_language: language?.name ? language.name : "NULL",
-    //   stdIn: stdInput,
-    //   stdOut: stdOutput,
-    //   code: code,
-    // };
-
     const data = {
       username: username,
       language: language.name,
@@ -136,7 +65,7 @@ const Editor = () => {
     };
     try {
       if (data.username !== "" && data.code !== "") {
-        dispatch(submitData(data));
+        dispatch(submitEntry(data));
         setTimeout(() => {
           setSubmitLoading(false);
           navigate("/entries");
@@ -165,8 +94,6 @@ const Editor = () => {
       name2: selectedLanguage ? selectedLanguage.name2 : "cpp",
     });
   };
-
-  // console.log("status: ", compileStatus);
 
   const handleRunCode = async () => {
     setRunLoading(true);

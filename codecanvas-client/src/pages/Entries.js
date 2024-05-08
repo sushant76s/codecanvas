@@ -19,14 +19,12 @@ import {
 import { styled } from "@mui/material/styles";
 
 import CodeDialog from "../components/code-dialog/CodeDialog";
-import { getSubmittedData } from "../redux/actions/entriesActions";
 import EmptyTableContent from "../components/empty-content/EmptyTableContent";
-import { serverCheck } from "../services/HealthCheck";
 import ServerError from "../components/error/ServerError";
-import Circular from "../components/progress/Circular";
 import Linear from "../components/progress/Linear";
 
-import { SERVER_ENDPOINT } from "../config-global";
+import { fetchEntries } from "../redux/actions/entriesActions";
+import { serverStatus } from "../redux/actions/serverStatusActions";
 
 const columns = [
   { id: "username", label: "USER", minWidth: 170 },
@@ -41,40 +39,26 @@ const columns = [
     label: "INPUT",
     minWidth: 170,
     align: "center",
-    // format: (value) => value.toLocaleString("en-US"),
   },
   {
     id: "stdout",
     label: "OUTPUT",
     minWidth: 170,
     align: "center",
-    // format: (value) => value.toLocaleString("en-US"),
   },
   {
     id: "createdAt",
     label: "SUBMISSION TIME",
     minWidth: 170,
     align: "center",
-    // format: (value) => value.toFixed(2),
   },
   {
     id: "sourceCode",
     label: "SOURCE CODE",
     minWidth: 170,
     align: "right",
-    // format: (value) => value.toFixed(2),
   },
 ];
-
-// function createData(user, lang, inp, out, code) {
-//   // const density = population / size;
-//   return { username: user, code_language: lang, stdIn: inp, stdOut: out, code };
-// }
-
-// const crows = [
-//   createData("John", "C++", 36, 6, "Hello, World!"),
-//   createData("John", "C++", 36, 6, "Hello, World!"),
-// ];
 
 const Entries = () => {
   const navigate = useNavigate();
@@ -82,78 +66,15 @@ const Entries = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [dialogStatus, setDialogStatus] = useState(false);
-  const [codeData, setCodeData] = useState("");
-  const submittedData = useSelector((state) => state.TableDataReducer.total);
-  const [rows, setRows] = useState(null);
-
-  const [serverStatus, setServerStatus] = useState(true);
-
-  const [allSnippets, setAllSnippets] = useState([]);
-
-  // useEffect(() => {
-  //   dispatch(getSubmittedData());
-  // }, [dispatch]);
-
-  // useEffect(() => {
-  //   if (submittedData !== null) {
-  //     setRows(submittedData);
-  //   }
-  // }, [submittedData]);
-
-  const fetchSnippets = async () => {
-    try {
-      const res = await fetch(`${SERVER_ENDPOINT}/get-snips`, {
-        cache: "no-store",
-      });
-      if (!res.ok) {
-        // Handle error (e.g., render a "not found" component)
-        return;
-      }
-      const data = await res.json();
-
-      let snippets = [];
-      if (data.db) {
-        snippets = data.db;
-      } else {
-        snippets = data.redis.map((snippet) => JSON.parse(snippet));
-        snippets.sort((a, b) => b.id - a.id);
-      }
-
-      snippets.forEach((snippet) => {
-        snippet.createdAt = new Date(snippet.createdAt).toLocaleString(
-          "en-IN",
-          {
-            timeZone: "Asia/Kolkata",
-            hour12: false,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          }
-        );
-        snippet.stdout = snippet.stdout
-          ? removeNonPrintableChars(snippet.stdout)
-          : "pending";
-      });
-
-      setAllSnippets(snippets);
-    } catch (error) {
-      console.error("Error fetching snippets:", error);
-      // Handle error (e.g., render an error message)
-    }
-  };
-
-  const removeNonPrintableChars = (str) => {
-    // Implement removeNonPrintableChars logic here
-    // For example, you can use a regex to remove control characters
-    return str.replace(/[\x00-\x1F\x7F]/g, "");
-  };
+  const [codeData, setCodeData] = useState({});
 
   useEffect(() => {
-    fetchSnippets();
-  }, []);
+    dispatch(fetchEntries());
+    dispatch(serverStatus());
+  }, [dispatch]);
+
+  const tableData = useSelector((state) => state.EntriesReducer.entries);
+  const serverState = useSelector((state) => state.ServerStatusReducer.status);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -171,6 +92,11 @@ const Entries = () => {
     navigate("/");
   };
 
+  const handleCodeDialog = (data) => {
+    setCodeData(data);
+    setDialogStatus(!dialogStatus);
+  };
+
   const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
     ...theme.typography.body2,
@@ -179,47 +105,22 @@ const Entries = () => {
     color: theme.palette.text.secondary,
   }));
 
-  const handleCodeDialog = (data) => {
-    setCodeData(data);
-    setDialogStatus(!dialogStatus);
-  };
-
-  // console.log("All snips: ", allSnippets);
-
-  // const isNotFound = rows && rows.length === 0;
-
-  const isNotFound = allSnippets && allSnippets.length === 0;
   const [empty, setEmpty] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (allSnippets.length === 0) {
+      if (tableData && tableData.length === 0) {
         setEmpty(true);
       }
-    }, 10 * 1000);
+    }, 5 * 1000);
 
     return () => {
       clearTimeout(timer);
     };
-  }, []);
+  }, [tableData]);
 
-  useEffect(() => {
-    const checkServerStatus = async () => {
-      try {
-        const response = await serverCheck();
-        if (!response.data.status) {
-          setServerStatus(false);
-        }
-      } catch (error) {
-        setServerStatus(false);
-      }
-    };
-
-    checkServerStatus();
-  }, []);
-
-  if (serverStatus === false) {
-    return <ServerError status={serverStatus} />;
+  if (!serverState) {
+    return <ServerError status={serverState} />;
   }
 
   return (
@@ -252,7 +153,7 @@ const Entries = () => {
         </Grid>
       </Grid>
       <Divider sx={{ mt: 2, mb: 2 }} />
-      {allSnippets.length === 0 ? <Linear /> : null}
+      {tableData && tableData.length === 0 && <Linear />}
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
         <TableContainer sx={{ maxHeight: 400 }}>
           <Table stickyHeader aria-label="sticky table">
@@ -270,8 +171,8 @@ const Entries = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {allSnippets &&
-                allSnippets
+              {tableData &&
+                tableData
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row) => {
                     return (
@@ -279,7 +180,7 @@ const Entries = () => {
                         hover
                         role="checkbox"
                         tabIndex={-1}
-                        key={row.code}
+                        key={row.id}
                       >
                         {columns.map((column) => {
                           const value = row[column.id];
@@ -302,13 +203,17 @@ const Entries = () => {
                     );
                   })}
             </TableBody>
-            {empty && <EmptyTableContent isEmpty={isNotFound} />}
+            {empty && (
+              <EmptyTableContent
+                isEmpty={tableData && tableData.length === 0}
+              />
+            )}
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[10, 25, 100]}
           component="div"
-          count={allSnippets && allSnippets.length}
+          count={tableData && tableData.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

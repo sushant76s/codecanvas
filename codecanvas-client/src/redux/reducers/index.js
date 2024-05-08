@@ -1,14 +1,11 @@
 import { combineReducers } from "@reduxjs/toolkit";
-import JudgeReducer from "./JudgeReducer";
-import JudgeTokenReducer from "./JudgeTokenReducer";
-import SubmissionReducer from "./SubmissionReducer";
-import TableDataReducer from "./TableDataReducer";
+
+import EntriesReducer from "./EntriesReducer";
+import ServerStatusReducer from "./ServerStatusReducer";
 
 const reducers = combineReducers({
-  JudgeReducer,
-  JudgeTokenReducer,
-  SubmissionReducer,
-  TableDataReducer,
+  EntriesReducer,
+  ServerStatusReducer,
 });
 
 export default reducers;
