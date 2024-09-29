@@ -1,7 +1,7 @@
 const { Worker } = require("bullmq");
 const Docker = require("dockerode");
 const Redis = require("ioredis");
-const { exec } = require("child_process");
+// const { exec } = require("child_process");
 const {
   existsSync,
   mkdirSync,
@@ -141,19 +141,28 @@ const worker = new Worker("snipQueue", work, {
 
 worker.run();
 
-const initialSetup = async () => {
-  const images = ["python", "cpp", "java", "javascript"];
-  images.map(async (image) => {
-    exec(
-      `docker build -t ${image}-runner Docker/${image}`,
-      (err, stdout, stderr) => {
-        if (err) {
-          console.log(`exec error: ${err}`);
-        }
-      }
-    );
-  });
-  console.log("Docker images built successfully.");
-};
+// const initialSetup = async () => {
+//   const images = ["python", "cpp", "java", "javascript"];
 
-initialSetup();
+//   await Promise.all(
+//     images.map(async (image) => {
+//       return new Promise((resolve, reject) => {
+//         exec(
+//           `docker build -t ${image}-runner ./Docker/${image}`,
+//           (err, stdout, stderr) => {
+//             if (err) {
+//               console.log(`Error building image ${image}: ${err}`);
+//               reject(err);
+//             } else {
+//               console.log(`Image: ${image} built successfully.`);
+//               resolve(stdout);
+//             }
+//           }
+//         );
+//       });
+//     })
+//   );
+//   console.log("All Docker images built successfully.");
+// };
+
+// initialSetup();
